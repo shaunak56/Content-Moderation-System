@@ -1,0 +1,109 @@
+{% extends 'CMSApp/base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="row" style="padding: 10px">
+    <h6 class="center">
+        {{ user_obj.username }}
+        {% if user.username == user_obj.username %}
+            <a class="btn blue white-text right edit-profile" onclick="edit_profile()">Edit</a>
+            <a class="btn green white-text right save-profile" onclick="save_profile()">Save</a>
+        {% endif %}
+    </h6>
+    <div class="divider col s12"></div>
+    <div class="col s12 row edit-profile" style="padding: 0">
+        <label for="user-name">Name</label>
+        <h6 id="user-name">{{ user_obj.first_name }} {{ user_obj.last_name }}</h6>
+        <label for="user-email">Email</label>
+        <h6 id="user-email">{{ user_obj.email }}</h6>
+        <label for="user-account-id">Account ID</label>
+        <h6 id="user-account-id">{{ user_obj.account_id }}</h6>
+        <label for="user-access_key">API access key</label>
+        <h6 id="user-access_key">{{ user_obj.access_key }}</h6>
+    </div>
+    <div class="col s12 row save-profile" style="padding: 0">
+        <label for="user-name">Name</label>
+        <h6 id="user-name">{{ user_obj.first_name }} {{ user_obj.last_name }}</h6>
+        <label for="user-email">Email</label>
+        <h6 id="user-email">{{ user_obj.email }}</h6>
+        <label for="user-account-id">Account ID</label>
+        <h6 id="user-account-id">{{ user_obj.account_id }}</h6>
+        <label for="user-access_key">API access key</label>
+        <h6 id="user-access_key">{{ user_obj.access_key }}</h6>
+    </div>
+
+</div>
+<script>
+author_pk = {{ author_obj.pk }}
+$(document).ready(function (){
+    $('.edit-profile').hide();
+    new_profile_pic = -1;
+})
+
+function edit_profile_mode(){
+    $('.edit-profile').show();
+    $('.view-profile').hide();
+}
+
+function save_profile(){
+    first_name = $('#input-first-name').val();
+    last_name = $('#input-last-name').val();
+    email_id = $('#input-email-id').val();
+    bio = $('#input-bio').val();
+
+    if(first_name == null || first_name.trim() == ""){
+        showToast("Enter first name", 2000);
+        return;
+    }
+    if(last_name == null || last_name.trim() == ""){
+        showToast("Enter last name", 2000);
+        return;
+    }
+    if(bio != null && bio.length > 200){
+        showToast("Only 200 chars allowed in bio");
+        return;
+    }
+
+    form_data = new FormData();
+
+    if(new_profile_pic != -1 && new_profile_pic != null){
+        form_data.append("new_profile_pic", new_profile_pic);
+        flag_profile_pic_change = 1;
+    }
+    else{
+        flag_profile_pic_change = new_profile_pic
+    }
+    json_string = JSON.stringify({
+        first_name: first_name,
+        last_name:last_name,
+        bio: bio,
+        email_id: email_id,
+        author_pk: author_pk,
+        flag_profile_pic_change: flag_profile_pic_change
+    });
+
+    form_data.append("data", json_string);
+
+    $.ajax({
+        url: '/easyshare/save-author-profile-api/',
+        type: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        },
+        data: form_data,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response['status'] == 200) {
+                showToast(response['message'], 2000);
+                location.reload();
+            }
+        },
+        error: function(xhr, textstatus, errorthrown) {
+            console.log("Please report this error: " + errorthrown + xhr.status + xhr.responseText);
+        }
+    });
+}
+
+</script>
+{% endblock %}
