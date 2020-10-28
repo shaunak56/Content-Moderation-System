@@ -44,7 +44,7 @@
   {% csrf_token %}
   <div class="navbar-fixed ">
     <nav class="navbar">
-      <div class="nav-wrapper gradient-45deg-orange-dark-red gradient-shadow">
+      <div class="nav-wrapper red darken-3 gradient-shadow">
         <a href="javascript:void(0)" data-target="sidenav-left"
         class="sidenav-trigger">
           <i class="material-icons black-text">menu</i>
@@ -69,19 +69,19 @@
 {% if request.user.is_authenticated %}
   <ul id="sidenav-left" class="sidenav sidenav-fixed white">
         <li>
-            <div style="position: relative; padding:0.45em; margin-bottom: 8px;font-size:19px;" class="center red darken-4 gradient-shadow">
+            <div style="position: relative; padding:0.45em; margin-bottom: 8px;font-size:19px;" class="center red darken-3 gradient-shadow">
             <a href="/" class="white-text">CMS</a>
           </div>
         </li>
         <ul class="collapsible">
             <li>
-              <a href="{% url 'profile-page' %}" class="collapsible-header"><i class="material-icons"  style="color: red;">person</i> Profile</a>
+              <a href="{% url 'profile-page' %}" class="collapsible-header"><i class="material-icons red-text">person</i> Profile</a>
             </li>
             <li>
-              <a href="javascript:void(0)" class="collapsible-header"><i class="material-icons"  style="color: red;">data_usage</i> Statistics</a>
+              <a href="javascript:void(0)" class="collapsible-header"><i class="material-icons red-text">data_usage</i> Statistics</a>
             </li>
             <li>
-              <a href="javascript:void(0)" class="collapsible-header"><i class="material-icons"  style="color: red;">payments</i> Billing</a>
+              <a href="javascript:void(0)" class="collapsible-header"><i class="material-icons red-text">payments</i> Billing</a>
             </li>
         </ul>
   </ul>

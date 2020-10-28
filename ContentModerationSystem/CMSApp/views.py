@@ -56,11 +56,19 @@ def LoginPage(request):
 	return render(request,'CMSApp/login.html',context)
 
 def SignupPage(request):
+
+	context = {}
+	context["tier_objs"] = Tier.objects.all()
+
 	return render(request,'CMSApp/login.html')
 
 @login_required
 def ProfilePage(request):
-	return render(request,'CMSApp/profile.html')
+	context = {
+		'user_obj': request.user,
+		'tier_objs': Tier.objects.all()
+	}
+	return render(request, 'CMSApp/profile.html', context)
 
 # LOGGER
 
@@ -74,7 +82,7 @@ def error():
 
 class LoginAPI(APIView):
 
-	authentication_classes = (BasicAuthentication)
+	authentication_classes = (BasicAuthentication,)
 
 	def post(self, request, *args, **kwargs):
 
@@ -85,7 +93,7 @@ class LoginAPI(APIView):
 			data = request.data
 
 			user = authenticate(username=data['username'], password=data['password'])
-
+			print(user, data)
 			if(user is not None):
 				response['status'] = 200
 				login(request, user)
@@ -101,7 +109,7 @@ class LoginAPI(APIView):
 
 class SignupAPI(APIView):
 
-	authentication_classes = (BasicAuthentication)
+	authentication_classes = (BasicAuthentication,)
 
 	def post(self, request, *args, **kwargs):
 		response = {}
@@ -109,7 +117,7 @@ class SignupAPI(APIView):
 
 		try:
 			data = request.data
-
+			print(data)
 			tier_pk = data["tier_pk"]
 			first_name = data["first_name"]
 			last_name = data["last_name"]
@@ -117,21 +125,19 @@ class SignupAPI(APIView):
 			password = data["password"]
 			email = data["email"]
 
-			if(User.objects.filter(username=username).exist()):
+			if(User.objects.filter(username=username).exists()):
 				response['status']  = 409
 			else:
 				try:
 					tier = Tier.objects.get(pk=tier_pk)
 
 					user = User.objects.create(
-
 						username=username,
 						email=email,
-						password=password,
 						tier=tier,
 						first_name=first_name,
-						last_name=last_name
-					)
+						last_name=last_name)
+					user.set_password(password)
 					user.save()
 					response['status'] = 202
 
@@ -172,9 +178,9 @@ class UserProfileAPI(APIView):
 				serializer.save()
 			else:
 				response["details"]=serializer.errors
-				return Response(data=response,status = HTTP_409_CONFLICT)
+				return Response(data=response, status = HTTP_409_CONFLICT)
 		except Exception as e:
 			print("ERROR IN = Validate_TokenAPI", str(e))
-			return Response(data=response,status = HTTP_401_UNAUTHORIZED)
+			return Response(data=response, status = HTTP_401_UNAUTHORIZED)
 
-		return Response(data=response)
+		return Response(data=response, status=HTTP_200_OK)

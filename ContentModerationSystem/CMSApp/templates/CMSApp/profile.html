@@ -6,8 +6,9 @@
     <h6 class="center">
         {{ user_obj.username }}
         {% if user.username == user_obj.username %}
-            <a class="btn blue white-text right edit-profile" onclick="edit_profile()">Edit</a>
-            <a class="btn green white-text right save-profile" onclick="save_profile()">Save</a>
+            <a class="btn red white-text modal-trigger right" style="margin-left: 10px" href="#modal-delete-profile" >Delete Profile</a>
+            <a class="btn blue white-text right edit-profile right" onclick="edit_profile()">Edit</a>
+            <a class="btn green white-text right save-profile right" onclick="save_profile()">Save</a>
         {% endif %}
     </h6>
     <div class="divider col s12"></div>
@@ -43,15 +44,15 @@
         <div class="col s6">
             <label for="select-tier">Tier</label>
             <select id="select-tier">
+                <option selected disabled value="-1">Select a tier</option>
                 {% for tier in tier_objs %}
-                    <option selected disabled value="-1">Select a tier</option>
                     <option id="tier-{{ tier.pk }}" value="tier-{{ tier.pk }}" {% if tier == user_obj.tier %} selected {% endif %}>{{ tier }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
     <div id="delete-profile">
-        <a class="btn red white-text modal-trigger" href="#modal-delete-profile" >Delete Profile</a>
+
         <div class="modal" id="modal-delete-profile">
             <div class="modal-content">
                 Are you sure you want to delete your profile?

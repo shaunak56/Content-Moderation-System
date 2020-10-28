@@ -43,7 +43,7 @@
                       <div class="row">
                           <div class="col s12">
                               <label for="input-username">Username</label>
-                              <input id="input-username" type="text">
+                              <input id="input-username" autocomplete="new-password" type="text">
                           </div>
                           <div class="col s6">
                               <label for="input-first-name">First Name</label>
@@ -55,17 +55,17 @@
                           </div>
                           <div class="col s6">
                               <label for="input-email">Email</label>
-                              <input id="input-email" type="text">
+                              <input id="input-email" autocomplete="new-password" type="text">
                           </div>
                           <div class="col s6">
                               <label for="input-password">Password</label>
-                              <input id="input-password" type="password">
+                              <input id="input-password" autocomplete="new-password" type="password">
                           </div>
                           <div class="col s12">
                               <label for="select-tier">Tier</label>
                               <select id="select-tier">
+                                  <option selected disabled value="-1">Select a tier</option>
                                   {% for tier in tier_objs %}
-                                      <option selected disabled value="-1">Select a tier</option>
                                       <option id="tier-{{ tier.pk }}" value="tier-{{ tier.pk }}" {% if tier == user_obj.tier %} selected {% endif %}>{{ tier }}</option>
                                   {% endfor %}
                               </select>
@@ -92,8 +92,8 @@ $(document).ready(function (){
 
 function login(){
 
-    username = $('login-username').val();
-    password = $('login-password').val();
+    username = $('#login-username').val();
+    password = $('#login-password').val();
 
     if(username == null || username.trim()==""){
         showToast("Please enter username");
@@ -153,7 +153,7 @@ function signup(){
         return;
     }
 
-    if(!validateEmail(email_id)){
+    if(!validateEmail(email)){
         showToast("Enter last name", 2000);
         return;
     }
