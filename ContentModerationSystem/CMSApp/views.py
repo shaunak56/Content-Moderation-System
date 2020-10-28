@@ -9,6 +9,7 @@ from ContentModerationSystem import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
+
 from django.http import HttpResponse, HttpResponseRedirect,HttpResponseNotFound
 
 import json
@@ -17,6 +18,18 @@ from datetime import datetime,time,date,timedelta
 from calendar import monthrange
 
 from django.utils.timezone import localtime
+
+from .serializers import UserProfileSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.status import (HTTP_200_OK,
+                                   HTTP_202_ACCEPTED,
+                                   HTTP_208_ALREADY_REPORTED,
+                                   HTTP_400_BAD_REQUEST,
+                                   HTTP_412_PRECONDITION_FAILED,
+                                   HTTP_409_CONFLICT,
+                                   HTTP_401_UNAUTHORIZED,
+                                   HTTP_404_NOT_FOUND)
+
 
 import logging
 import sys
@@ -45,6 +58,7 @@ def LoginPage(request):
 def SignupPage(request):
 	return render(request,'CMSApp/login.html')
 
+@login_required
 def ProfilePage(request):
 	return render(request,'CMSApp/profile.html')
 
@@ -111,7 +125,7 @@ class SignupAPI(APIView):
 
 					user = User.objects.create(
 
-						username=username, 
+						username=username,
 						email=email,
 						password=password,
 						tier=tier,
@@ -128,5 +142,38 @@ class SignupAPI(APIView):
 		except Exception as e:
 			error()
 			print("ERROR IN SignupAPI", str(e))
+
+		return Response(data=response)
+
+class UserProfileAPI(APIView):
+	permission_classes = [IsAuthenticated,]
+
+	def get(self, request, *args, **kwargs):
+		response = {}
+		try:
+			data = request.data
+			user = request.user
+			response["data"] = UserProfileSerializer(user,context={'request':request}).data
+		except Exception as e:
+			print("ERROR IN = Validate_TokenAPI", str(e))
+			return Response(data=response,status = HTTP_401_UNAUTHORIZED)
+
+		return Response(data=response,status = HTTP_200_OK)
+
+	def patch(self, request, *args, **kwargs):
+		response = {}
+
+		try:
+			data = request.data
+			user = request.user
+			serializer = UserProfileSerializer(user, data=request.data, partial=True,context={'request':request}) # set partial=True to update a data partially
+			if serializer.is_valid():
+				serializer.save()
+			else:
+				response["details"]=serializer.errors
+			return Response(data=response,status = HTTP_409_CONFLICT)
+		except Exception as e:
+			print("ERROR IN = Validate_TokenAPI", str(e))
+			return Response(data=response,status = HTTP_401_UNAUTHORIZED)
 
 		return Response(data=response)
