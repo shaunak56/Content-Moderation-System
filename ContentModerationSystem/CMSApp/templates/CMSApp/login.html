@@ -1,0 +1,211 @@
+{% extends 'CMSApp/base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="row" style="padding: 10px">
+	<div class="col m3 l3">
+
+	</div>
+	<div class="col s12 m6 l6">
+		<div class="hide-on-small-only"><br><br><br></div>
+		<div class="card-panel">
+			<div class="row">
+				<div class="col s12">
+					<h5 class="center">Welcome to CMS</h5>
+				</div>
+				<div class="col s12" style="padding: 10px">
+                    <ul class="tabs" >
+                      <li class="tab col s6">
+                          <a class="active" href="#div-login" >Login</a>
+                      </li>
+                      <li class="tab col s6">
+                          <a href="#div-signup" >Signup</a>
+                      </li>
+                    </ul>
+
+                    <div id="div-login">
+                      <div class="row">
+                          <div class="col s12">
+                              <label for="login-username">Username</label>
+                              <input id="login-username" type="text">
+                          </div>
+                          <div class="col s12">
+                              <label for="login-password">Password</label>
+                              <input id="login-password" type="password">
+                          </div>
+                          <div class="col s12">
+                              <a id="btn-login" class="btn blue right" href="javascript:void(0)" onclick="login()">Login</a>
+                          </div>
+                      </div>
+                    </div>
+
+                    <div id="div-signup">
+                      <div class="row">
+                          <div class="col s12">
+                              <label for="input-username">Username</label>
+                              <input id="input-username" type="text">
+                          </div>
+                          <div class="col s6">
+                              <label for="input-first-name">First Name</label>
+                              <input id="input-first-name" type="text">
+                          </div>
+                          <div class="col s6">
+                              <label for="input-last-name">Last Name</label>
+                              <input id="input-last-name" type="text">
+                          </div>
+                          <div class="col s6">
+                              <label for="input-email">Email</label>
+                              <input id="input-email" type="text">
+                          </div>
+                          <div class="col s6">
+                              <label for="input-password">Password</label>
+                              <input id="input-password" type="password">
+                          </div>
+                          <div class="col s12">
+                              <label for="select-tier">Tier</label>
+                              <select id="select-tier">
+                                  {% for tier in tier_objs %}
+                                      <option selected disabled value="-1">Select a tier</option>
+                                      <option id="tier-{{ tier.pk }}" value="tier-{{ tier.pk }}" {% if tier == user_obj.tier %} selected {% endif %}>{{ tier }}</option>
+                                  {% endfor %}
+                              </select>
+                          </div>
+                          <div class="col s12">
+                              <br><br>
+                              <a id="btn-signup" class="btn blue right" href="javascript:void(0)" onclick="signup()">Signup</a>
+                          </div>
+                      </div>
+                    </div>
+                </div>
+			</div>
+		</div>
+	</div>
+	<div class="col m3 l3">
+
+	</div>
+</div>
+<script>
+
+$(document).ready(function (){
+
+})
+
+function login(){
+
+    username = $('login-username').val();
+    password = $('login-password').val();
+
+    if(username == null || username.trim()==""){
+        showToast("Please enter username");
+        return;
+    }
+
+    if(password == null || password.trim()==""){
+        showToast("Please enter password");
+        return;
+    }
+
+    data_json = {
+        username: username,
+        password: password,
+    }
+
+    $.ajax({
+        url: "{% url 'login-API' %}",
+        type: "POST",
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        },
+        data:data_json,
+        success: function(response) {
+            if (response['status'] == 200) {
+                showToast("Welcome "+username);
+                window.location = "{% url 'profile-page' %}";
+            }
+            else{
+                showToast("Unauthorized user. Kindly check username or password");
+            }
+        },
+        error: function(xhr, textstatus, errorthrown) {
+            console.log("Please report this error: " + errorthrown + xhr.status + xhr.responseText);
+        }
+    });
+}
+
+function signup(){
+    username = $('#input-username').val();
+    first_name = $('#input-first-name').val();
+    last_name = $('#input-last-name').val();
+    email = $('#input-email').val();
+    password = $('#input-password').val();
+    tier_pk = $('#select-tier').val();
+
+    if(username == null || username.trim() == ""){
+        showToast("Enter Username", 2000);
+        return;
+    }
+    if(first_name == null || first_name.trim() == ""){
+        showToast("Enter first name", 2000);
+        return;
+    }
+    if(last_name == null || last_name.trim() == ""){
+        showToast("Enter last name", 2000);
+        return;
+    }
+
+    if(!validateEmail(email_id)){
+        showToast("Enter last name", 2000);
+        return;
+    }
+
+    if(password == null || password.trim() == ""){
+        showToast("Enter password", 2000);
+        return;
+    }
+
+    if(tier_pk == '-1'){
+        showToast("Please select a tier to continue");
+        return;
+    }
+    else{
+        tier_pk = tier_pk.split('-')[1];
+    }
+
+    data_json = {
+        username: username,
+        first_name: first_name,
+        last_name:last_name,
+        email: email,
+        password: password,
+        tier_pk: tier_pk,
+    };
+
+    $.ajax({
+        url: "{% url 'signup-API' %}",
+        type: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        },
+        data: data_json,
+        success: function(response) {
+            if (response['status'] == 200) {
+                showToast("Welcome "+username);
+                window.location = "{% url 'profile-page' %}";
+            }
+            else if(response['status'] == 409){
+                showToast("Username already exists, try another username");
+            }
+            else if(response['status'] == 400){
+                showToast("Bad request");
+            }
+            else{
+                showToast("Internal server error");
+            }
+        },
+        error: function(xhr, textstatus, errorthrown) {
+            console.log("Please report this error: " + errorthrown + xhr.status + xhr.responseText);
+        }
+    });
+}
+</script>
+{% endblock %}

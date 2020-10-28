@@ -8,8 +8,23 @@ from .models import *
 def ProfilePage(request):
 
     try:
-        context = {}
+        context = {
+            'user_obj': request.user,
+            'tier_objs': Tier.objects.all(),
+        }
         return render(request, 'CMSApp/profile.html', context)
+    except Exception as e:
+        print(str(e))
+        return HttpResponse('Internal Error')
+
+
+def LoginPage(request):
+
+    try:
+        context = {
+            'tier_objs': Tier.objects.all(),
+        }
+        return render(request, 'CMSApp/login.html', context)
     except Exception as e:
         print(str(e))
         return HttpResponse('Internal Error')
