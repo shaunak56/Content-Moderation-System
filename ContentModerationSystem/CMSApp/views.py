@@ -4,6 +4,7 @@ from rest_framework.authentication import SessionAuthentication, \
 	BasicAuthentication
 from rest_framework.views import APIView
 from CMSApp.models import *
+from .constants import *
 
 from ContentModerationSystem import settings
 from django.contrib.auth import authenticate, login, logout
@@ -22,13 +23,13 @@ from django.utils.timezone import localtime
 from .serializers import UserProfileSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.status import (HTTP_200_OK,
-                                   HTTP_202_ACCEPTED,
-                                   HTTP_208_ALREADY_REPORTED,
-                                   HTTP_400_BAD_REQUEST,
-                                   HTTP_412_PRECONDITION_FAILED,
-                                   HTTP_409_CONFLICT,
-                                   HTTP_401_UNAUTHORIZED,
-                                   HTTP_404_NOT_FOUND)
+								   HTTP_202_ACCEPTED,
+								   HTTP_208_ALREADY_REPORTED,
+								   HTTP_400_BAD_REQUEST,
+								   HTTP_412_PRECONDITION_FAILED,
+								   HTTP_409_CONFLICT,
+								   HTTP_401_UNAUTHORIZED,
+								   HTTP_404_NOT_FOUND)
 
 
 import logging
@@ -62,13 +63,17 @@ def SignupPage(request):
 
 	return render(request,'CMSApp/login.html')
 
-@login_required
+@login_required(login_url='/login/')
 def ProfilePage(request):
 	context = {
 		'user_obj': request.user,
 		'tier_objs': Tier.objects.all()
 	}
 	return render(request, 'CMSApp/profile.html', context)
+
+@login_required(login_url='/login/')
+def UsageAnalysisPage(request):
+	return render(request, 'CMSApp/usage-analysis.html')
 
 # LOGGER
 
@@ -162,6 +167,7 @@ class UserProfileAPI(APIView):
 			user = request.user
 			response["data"] = UserProfileSerializer(user,context={'request':request}).data
 		except Exception as e:
+			error()
 			print("ERROR IN = Validate_TokenAPI", str(e))
 			return Response(data=response,status = HTTP_401_UNAUTHORIZED)
 
@@ -180,7 +186,71 @@ class UserProfileAPI(APIView):
 				response["details"]=serializer.errors
 				return Response(data=response, status = HTTP_409_CONFLICT)
 		except Exception as e:
+			error()
 			print("ERROR IN = Validate_TokenAPI", str(e))
 			return Response(data=response, status = HTTP_401_UNAUTHORIZED)
 
 		return Response(data=response, status=HTTP_200_OK)
+
+
+class UsageAnalysisAPI(APIView):
+	permission_classes = [IsAuthenticated,]
+
+	def get(self, request, *args, **kwargs):
+		response = {}
+		try:
+			data = request.data
+			user = request.user
+
+			request.GET.get('start_date', '-1')
+			request.GET.get('end_date', '-1')
+
+			content_group_objects = ContentGroup.objects.none()
+
+			start_date_time = None
+			end_date_time = None
+
+			try:
+				start_date_time = datetime.strptime(request.GET['start_date']+"-"+request.GET['start_time'],"%d-%m-%Y-%H-%M")
+			except:
+				pass
+
+			try:
+				end_date_time = datetime.strptime(request.GET['end_date']+"-"+request.GET['end_time'],"%d-%m-%Y-%H-%M")
+			except:
+				pass
+
+			try:
+				content_group_objects = ContentGroup.objects.filter(user=user)
+
+				if(start_date_time == None and end_date_time == None):
+					content_group_objects = content_group_objects[:-1]
+				else:
+					try:
+						content_group_objects = content_group_objects.filter(created_on__gte=start_date_time)
+					except:
+						pass
+					try:
+						content_group_objects = content_group_objects.filter(created_on__lte=end_date_time)
+					except:
+						pass
+			except:
+					content_group_objects = None
+
+			response["content_group_objects"] = []
+
+			for content_group_object in content_group_objects:
+
+				temp = {}
+				temp["created_on"] = content_group_object.created_on
+				temp["uuid"] = content_group_object.uuid
+				temp["status"] = report_status_choices_dict[content_group_object.report_status]
+
+				response["content_group_objects"].append(temp)
+
+		except Exception as e:
+			error()
+			print("ERROR IN UsageAnalysisAPI", str(e))
+			return Response(data=response,status = HTTP_401_UNAUTHORIZED)
+
+		return Response(data=response,status = HTTP_200_OK)
