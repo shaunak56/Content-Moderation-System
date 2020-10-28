@@ -39,7 +39,6 @@ class Tier(models.Model):
 
     is_deleted = models.BooleanField(default=False)
     created_on = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey('User', blank=True, null=True, on_delete=models.SET_NULL, related_name='creted_tier')
 
     objects = TierManager
     admin_objects = models.Manager
