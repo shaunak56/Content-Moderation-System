@@ -10,5 +10,8 @@ urlpatterns = [
  	path('signup-API/',views.SignupAPI.as_view(), name="signup-API"),
  	path('login-API/',views.LoginAPI.as_view(), name="login-API"),
  	path('user-profile-API/',views.UserProfileAPI.as_view(), name="user-profile-API"),
+ 	path('usage-analysis-API/',views.UsageAnalysisAPI.as_view(), name="usage-analysis-API"),
 
+ 	# path('/billing',views.Billing, name="billing-page"),
+ 	# path('/billing-API',views.BillingAPI.as_view(), name="billing-API"),
 ]
