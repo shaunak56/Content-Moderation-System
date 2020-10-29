@@ -16,9 +16,9 @@ class TierManager(models.Manager):
 
 class User(AbstractUser):
 
-    access_key = models.CharField(max_length=200,unique=True)
-    account_id = models.CharField(max_length=200,unique=True)
-    tier = models.ForeignKey('Tier', blank=True, null=True, on_delete=models.SET_NULL)
+    access_key = models.CharField(max_length=200,unique=True,blank=False,null=False)
+    account_id = models.CharField(max_length=200,unique=True,blank=False,null=False)
+    tier = models.ForeignKey('Tier', default=1,blank=False, null=False, on_delete=models.SET_DEFAULT)
     # objects = UserManager
     # admin_objects = models.Manager
 
@@ -30,9 +30,9 @@ class User(AbstractUser):
 
 class Tier(models.Model):
 
-    name = models.CharField(max_length=200, blank=False, null=False)
+    name = models.CharField(max_length=200, blank=False, null=False,unique=True)
     price = models.FloatField(default=0.0)
-    price_unit = models.CharField(max_length=200, choices=CURRENCY_UNITS, blank=False, null=False)
+    price_unit = models.CharField(max_length=200, default='INR',choices=CURRENCY_UNITS, blank=False, null=False)
     throttling_limit = models.IntegerField(default=0)
     content_size = models.IntegerField(default=0)
 
@@ -53,7 +53,7 @@ class Tier(models.Model):
 
 class Content(models.Model):
 
-    text = models.TextField(blank=True, null=True)
+    text = models.TextField(default='',blank=True, null=False)
     content_group = models.ForeignKey('ContentGroup', blank=True, null=True, on_delete=models.SET_NULL)
     created_on = models.DateTimeField(auto_now_add=True)
 

@@ -3,6 +3,9 @@ from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
 from django.contrib.auth.admin import UserAdmin
 
+from .models import Tier
+from django.core.exceptions import ObjectDoesNotExist
+
 app_models = apps.get_app_config('CMSApp').get_models()
 
 class CustomUserAdmin(UserAdmin):
@@ -24,3 +27,8 @@ for model in app_models:
             admin.site.register(model)
     except AlreadyRegistered:
         pass
+
+try:
+    tier = Tier.objects.get(name='Free')
+except ObjectDoesNotExist:
+    Tier.objects.create(name='Free',throttling_limit=5,content_size=100)
