@@ -32,6 +32,9 @@ from rest_framework.status import (HTTP_200_OK,
                                    HTTP_401_UNAUTHORIZED,
                                    HTTP_404_NOT_FOUND)
 
+from .throttling import SubscriptionRateThrottle
+from .authentication import AccessKeyAuthentication
+
 import logging
 import sys
 
@@ -222,6 +225,8 @@ def UsageAnalysisPage(request):
 
 
 class UsageAnalysisAPI(APIView):
+    # authentication_classes = [AccessKeyAuthentication]
+    # throttle_classes = [SubscriptionRateThrottle]
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request, *args, **kwargs):
@@ -229,6 +234,7 @@ class UsageAnalysisAPI(APIView):
         try:
             data = request.data
             user = request.user
+            print('api user : ' + str(user))
             print(request.GET)
             request.GET.get('start_date', '-1')
             request.GET.get('end_date', '-1')

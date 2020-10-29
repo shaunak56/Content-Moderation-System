@@ -16,10 +16,9 @@ class TierManager(models.Manager):
 
 class User(AbstractUser):
 
-    access_key = models.CharField(max_length=200)
-    account_id = models.CharField(max_length=200)
+    access_key = models.CharField(max_length=200,unique=True)
+    account_id = models.CharField(max_length=200,unique=True)
     tier = models.ForeignKey('Tier', blank=True, null=True, on_delete=models.SET_NULL)
-    is_deleted = models.BooleanField(default=False)
     # objects = UserManager
     # admin_objects = models.Manager
 
