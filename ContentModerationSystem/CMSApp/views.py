@@ -184,3 +184,28 @@ class UserProfileAPI(APIView):
 			return Response(data=response, status = HTTP_401_UNAUTHORIZED)
 
 		return Response(data=response, status=HTTP_200_OK)
+
+
+def UsageAnalysisPage(request):
+
+	start_time = ""
+	end_time = ""
+
+	try:
+		start_date = datetime.strptime(request.GET['start_date'], "%d-%m-%Y-%H-%M")
+	except:
+		start_date = ""
+
+	try:
+		end_date = datetime.strptime(request.GET['end_date'], "%d-%m-%Y-%H-%M")
+	except:
+		end_date = ""
+
+	context = {
+		'start_date': start_date,
+		'end_date': end_date,
+		'start_time': start_time,
+		'end_time': end_time
+	}
+
+	return render(request, 'CMSApp/usage_analysis.html', context)

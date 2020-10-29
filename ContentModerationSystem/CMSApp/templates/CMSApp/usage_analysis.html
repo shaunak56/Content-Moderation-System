@@ -1,0 +1,59 @@
+{% extends 'CMSApp/base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="row" style="padding: 10px">
+    <div class="col s3">
+        <label for="start-date">Start date</label>
+        <input type="text" id="start-date" value="{{ start_date }}" class="datepicker">
+    </div>
+    <div class="col s2">
+        <label for="start-time">Start time</label>
+        <input type="text" id="start-time" value="{{ start_time }}" class="timepicker">
+    </div>
+    <div class="col s3">
+        <label for="end-date">End date</label>
+        <input type="text" id="end-date" value="{{ end_date }}" class="datepicker">
+    </div>
+    <div class="col s2">
+        <label for="end-time">End time</label>
+        <input type="text" id="end-time" value="{{ end_time }}" class="timepicker">
+    </div>
+    <div class="col s2">
+        <a class="btn green white-text" href="javascript:void(0)" onclick="search_in_range()">Search</a>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function(){
+        start_date = -1;
+        start_time = -1;
+        end_date = -1;
+        end_time = -1;
+        if($('#start-date').val()){
+            start_date = $('#start-date').val();
+        }
+        if($('#start-time').val()){
+            start_time = $('#start-time').val();
+        }
+        if($('#end-date').val()){
+            end_date = $('#end-date').val();
+        }
+        if($('#end-time').val()){
+            end_time = $('#end-time').val();
+        }
+        $.ajax({
+            url:"{% url 'usage-analysis-page' %}",
+            type:"GET",
+            data:{
+                start_date:start_date,
+                start_time:start_time,
+                end_date: end_date,
+                end_time: end_time
+            },
+
+        })
+    });
+</script>
+{% endblock %}
