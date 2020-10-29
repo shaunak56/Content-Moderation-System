@@ -5,28 +5,51 @@
 <div class="row" style="padding: 10px">
     <div class="col s3">
         <label for="start-date">Start date</label>
-        <input type="text" id="start-date" value="{{ start_date }}" class="datepicker">
+        <input type="text" id="start-date" value="{{ start_date|date:'d/m/Y' }}" class="datepicker">
     </div>
     <div class="col s2">
         <label for="start-time">Start time</label>
-        <input type="text" id="start-time" value="{{ start_time }}" class="timepicker">
+        <input type="text" id="start-time" value="{{ start_date|date:'H:i' }}" class="timepicker">
     </div>
     <div class="col s3">
         <label for="end-date">End date</label>
-        <input type="text" id="end-date" value="{{ end_date }}" class="datepicker">
+        <input type="text" id="end-date" value="{{ end_date|date:'d/m/Y' }}" class="datepicker">
     </div>
     <div class="col s2">
         <label for="end-time">End time</label>
-        <input type="text" id="end-time" value="{{ end_time }}" class="timepicker">
+        <input type="text" id="end-time" value="{{ end_date|date:'H:i' }}" class="timepicker">
     </div>
-    <div class="col s2">
+    <div class="col s2" style="padding-top: 20px">
         <a class="btn green white-text" href="javascript:void(0)" onclick="search_in_range()">Search</a>
     </div>
 </div>
 
+<div class="row" style="padding: 10px">
+    <table id="table-content-groups">
+        <thead>
+            <tr>
+                <th>Group No.</th>
+                <th>No. of entries</th>
+                <th>Created on</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="tbody-content-groups">
+
+        </tbody>
+    </table>
+</div>
+
 <script>
 
-    $(document).ready(function(){
+function search_in_range() {
+    start_date = $('#start-date').val().replaceAll('/','-')+"-"+$('#start-time').val().replace(':','-');
+    end_date = $('#end-date').val().replaceAll('/','-')+"-"+$('#end-time').val().replace(':','-');
+    window.location = "{% url 'usage-analysis-page' %}" + "?start_date="+start_date+"&end_date="+end_date;
+}
+
+
+$(document).ready(function(){
         start_date = -1;
         start_time = -1;
         end_date = -1;
@@ -44,7 +67,7 @@
             end_time = $('#end-time').val();
         }
         $.ajax({
-            url:"{% url 'usage-analysis-page' %}",
+            url:"{% url 'usage-analysis-API' %}",
             type:"GET",
             data:{
                 start_date:start_date,
@@ -52,7 +75,32 @@
                 end_date: end_date,
                 end_time: end_time
             },
-
+            success: function(response, status, xhr) {
+                if (xhr.status == 200) {
+                    tbody_html = "";
+                    for(let i=0; i<response['content_group_objects'].length; i++){
+                        row = response['content_group_objects'][i];
+                        tbody_html+='<tr>\
+                                        <td>'+row['uuid']+'</td>\
+                                        <td>'+row['entries']+'</td>\
+                                        <td>'+row['created_on']+'</td>\
+                                        <td>'+row['status']+'</td>\
+                                     </tr>'
+                    }
+                    $('#tbody-content-groups').html(tbody_html);
+                    $('#table-content-groups').DataTable({
+                        "bLengthChange": false,
+                        "iDisplayLength": 20,
+                        "pageLength": 20
+                    });
+                }
+                else{
+                    showToast("Internal server error");
+                }
+            },
+            error: function(xhr, textstatus, errorthrown) {
+                console.log("Please report this error: " + errorthrown + xhr.status + xhr.responseText);
+            }
         })
     });
 </script>
