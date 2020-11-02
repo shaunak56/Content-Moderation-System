@@ -6,6 +6,9 @@ from django.contrib.auth.admin import UserAdmin
 from .models import Tier
 from django.core.exceptions import ObjectDoesNotExist
 
+import threading
+from .utils import moderate
+
 app_models = apps.get_app_config('CMSApp').get_models()
 
 class CustomUserAdmin(UserAdmin):
@@ -37,3 +40,7 @@ except ObjectDoesNotExist:
         pass
 except:
     pass
+
+generate_result_task = threading.Thread(target=moderate)
+generate_result_task.daemon = True
+generate_result_task.start()

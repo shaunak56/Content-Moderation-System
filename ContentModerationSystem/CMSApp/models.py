@@ -53,9 +53,12 @@ class Tier(models.Model):
 
 class Content(models.Model):
 
+    text_id = models.TextField(default='',blank=True, null=False)
     text = models.TextField(default='',blank=True, null=False)
     content_group = models.ForeignKey('ContentGroup', blank=True, null=True, on_delete=models.SET_NULL)
     created_on = models.DateTimeField(auto_now_add=True)
+    is_moderated = models.BooleanField(default=False)
+    is_last = models.BooleanField(default=False)
 
 
 class ContentGroup(models.Model):
