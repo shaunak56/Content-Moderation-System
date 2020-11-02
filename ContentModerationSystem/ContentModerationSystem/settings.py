@@ -84,6 +84,18 @@ DATABASES = {
     }
 }
 
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+        'CMSApp.throttling.SubscriptionRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '5/second',
+        'subscription': '200/day'
+    }
+}
+ACCESS_KEY_PREFIX = 'ACCESS_KEY'
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
