@@ -4,7 +4,7 @@ import pickle
 
 def moderate():
 
-    json_file = open('model.json', 'r')
+    json_file = open('static/CMSApp/model.json', 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
@@ -15,7 +15,7 @@ def moderate():
     # evaluate loaded model on test data
     loaded_model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
-    with open('static/tokenizer.pickle', 'rb') as handle:
+    with open('static/CMSApp/tokenizer.pickle', 'rb') as handle:
         tokenizer = pickle.load(handle)
 
     print("Loaded tokenizer from disk")
