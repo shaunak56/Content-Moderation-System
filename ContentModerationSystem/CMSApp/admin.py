@@ -31,4 +31,9 @@ for model in app_models:
 try:
     tier = Tier.objects.get(name='Free')
 except ObjectDoesNotExist:
-    Tier.objects.create(name='Free',throttling_limit=5,content_size=100)
+    try:
+        Tier.objects.create(name='Free',throttling_limit=5,content_size=100)
+    except:
+        pass
+except:
+    pass
