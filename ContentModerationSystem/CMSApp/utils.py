@@ -10,6 +10,8 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 import pandas as pd
 import numpy as np
+
+from time import sleep
 import json
 import sys, traceback
 import pickle
@@ -74,4 +76,4 @@ def moderate():
             if comment.is_last:
                 comment.content_group.report_status = '1'
                 comment.content_group.save()
-        break
+        sleep(1)
