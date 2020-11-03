@@ -77,10 +77,12 @@ def ProfilePage(request):
     }
     return render(request, 'CMSApp/profile.html', context)
 
+
 @login_required(login_url='/cms/login/')
 def Logout(request):
     logout(request)
     return HttpResponseRedirect('/cms/login/')
+
 
 @login_required(login_url='/cms/login/')
 def UsageAnalysisPage(request):
@@ -284,8 +286,8 @@ class UsageAnalysisAPI(APIView):
             for content_group_object in content_group_objects:
                 temp = {"created_on": (content_group_object.created_on + timedelta(hours=5, minutes=30)).strftime(
                     "%d-%m-%Y %H:%M"), "uuid": content_group_object.uuid,
-                        "status": report_status_choices_dict[content_group_object.report_status],
-                        "entries": content_group_object.content_set.count()}
+                    "status": report_status_choices_dict[content_group_object.report_status],
+                    "entries": content_group_object.content_set.count()}
 
                 response["content_group_objects"].append(temp)
 
@@ -331,7 +333,8 @@ class BillingAPI(APIView):
             end_date_time = None
 
             try:
-                start_date_time = datetime.strptime(request.GET['start_date'], "%d/%m/%Y") - timedelta(hours=5, minutes=30)
+                start_date_time = datetime.strptime(request.GET['start_date'], "%d/%m/%Y") - timedelta(hours=5,
+                                                                                                       minutes=30)
             except:
                 pass
 
@@ -408,9 +411,9 @@ class PayBillAPI(APIView):
 
 class ContentAPI(APIView):
     authentication_classes = [AccessKeyAuthentication]
-    throttle_classes       = [SubscriptionRateThrottle]
+    throttle_classes = [SubscriptionRateThrottle]
 
-    def post(self,request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         response = {}
         try:
             data = request.data
@@ -418,8 +421,9 @@ class ContentAPI(APIView):
 
             list = data['comments']
 
-            if len(list)>user.tier.content_size or len(list) == 0:
-                response['details'] = 'You cannot send more than ' + str(user.tier.content_size) + ' and less than  1 comments in one API call in this tier'
+            if len(list) > user.tier.content_size or len(list) == 0:
+                response['details'] = 'You cannot send more than ' + str(
+                    user.tier.content_size) + ' and less than  1 comments in one API call in this tier'
                 return Response(data=response, status=HTTP_400_BAD_REQUEST)
 
             comment_ids = []
@@ -430,13 +434,21 @@ class ContentAPI(APIView):
 
             group = ContentGroup.objects.create(user=user)
 
-            for i in range(len(comment_ids)-1):
-                Content.objects.create(text_id = comment_ids[i], text = comment_texts[i], content_group=group)
+            for i in range(len(comment_ids) - 1):
+                Content.objects.create(text_id=comment_ids[i], text=comment_texts[i], content_group=group)
 
-            index = len(comment_ids)-1
-            Content.objects.create(text_id = comment_ids[index], text = comment_texts[index], content_group=group, is_last=True)
+            index = len(comment_ids) - 1
+            Content.objects.create(text_id=comment_ids[index], text=comment_texts[index], content_group=group,
+                                   is_last=True)
             response['details'] = 'Comments added to the juding queue. Please find you report soon using the group_id'
             response['group_id'] = str(group.uuid)
+
+            current_month_bill = MonthlyBill.objects.filter(user=user, created_on__month=timezone.now().month).filter(created_on__year=timezone.now().year)
+            if current_month_bill.count() == 0:
+                if user.tier is None:
+                    user.tier = Tier.objects.get(name='Free')
+                    user.save()
+                MonthlyBill.objects.create(user=user, created_on=timezone.now(), price=user.tier.price, price_unit=user.tier.price_unit)
 
             return Response(data=response, status=HTTP_202_ACCEPTED)
         except Exception as e:
@@ -447,14 +459,14 @@ class ContentAPI(APIView):
 class RequestReportAPI(APIView):
     authentication_classes = [AccessKeyAuthentication]
 
-    def post(self,request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         response = {}
         try:
             data = request.data
             user = request.user
 
             id = data['group_id']
-            group = ContentGroup.objects.get(uuid = id)
+            group = ContentGroup.objects.get(uuid=id)
             response['status'] = group.report_status
             if group.report_status == '1':
                 reports = []
@@ -471,7 +483,7 @@ class RequestReportAPI(APIView):
 class RequestContentGroupIdAPI(APIView):
     authentication_classes = [AccessKeyAuthentication]
 
-    def post(self,request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         response = {}
         try:
             data = request.data
@@ -480,17 +492,19 @@ class RequestContentGroupIdAPI(APIView):
             start_time = data['start_time']
             end_time = data['end_time']
 
-            start_date_time = datetime.strptime(start_time,"%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
-            end_date_time = datetime.strptime(end_time,"%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
+            start_date_time = datetime.strptime(start_time, "%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
+            end_date_time = datetime.strptime(end_time, "%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
 
-            groups = ContentGroup.objects.filter(created_on__lte=end_date_time,created_on__gte=start_date_time,user=request.user)
+            groups = ContentGroup.objects.filter(created_on__lte=end_date_time, created_on__gte=start_date_time,
+                                                 user=request.user)
 
             list_data = []
 
             for group in groups:
                 data_dic = {}
                 data_dic['uuid'] = group.uuid
-                data_dic['submitted_on'] = datetime.strftime(group.created_on+ timedelta(hours=5, minutes=30),"%d/%m/%Y-%H:%M") 
+                data_dic['submitted_on'] = datetime.strftime(group.created_on + timedelta(hours=5, minutes=30),
+                                                             "%d/%m/%Y-%H:%M")
                 data_dic['status'] = group.report_status
                 list_data.append(data_dic)
 
