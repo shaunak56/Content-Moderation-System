@@ -11,23 +11,23 @@ from .utils import moderate
 
 app_models = apps.get_app_config('CMSApp').get_models()
 
-class CustomUserAdmin(UserAdmin):
+# class CustomUserAdmin(UserAdmin):
 
-    fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('access_key','tier')}),
-    )
+#     fieldsets = UserAdmin.fieldsets + (
+#         (None, {'fields': ('access_key','tier')}),
+#     )
 
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {'fields': ('access_key','tier')}),
-    )
+#     add_fieldsets = UserAdmin.add_fieldsets + (
+#         (None, {'fields': ('access_key','tier')}),
+#     )
 
 
 for model in app_models:
     try:
-        if str(model) == "<class 'CMSApp.models.User'>":
-            admin.site.register(model,CustomUserAdmin)
-        else:
-            admin.site.register(model)
+        # if str(model) == "<class 'CMSApp.models.User'>":
+        #     admin.site.register(model,CustomUserAdmin)
+        # else:
+        admin.site.register(model)
     except AlreadyRegistered:
         pass
 
@@ -41,6 +41,9 @@ except ObjectDoesNotExist:
 except:
     pass
 
-generate_result_task = threading.Thread(target=moderate)
-generate_result_task.daemon = True
-generate_result_task.start()
+try:
+	generate_result_task = threading.Thread(target=moderate)
+	generate_result_task.daemon = True
+	generate_result_task.start()
+except:
+	pass
