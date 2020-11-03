@@ -30,7 +30,8 @@ from rest_framework.status import (HTTP_200_OK,
                                    HTTP_412_PRECONDITION_FAILED,
                                    HTTP_409_CONFLICT,
                                    HTTP_401_UNAUTHORIZED,
-                                   HTTP_404_NOT_FOUND)
+                                   HTTP_404_NOT_FOUND,
+                                   HTTP_403_FORBIDDEN)
 
 from .throttling import SubscriptionRateThrottle
 from .authentication import AccessKeyAuthentication
@@ -246,13 +247,13 @@ class UsageAnalysisAPI(APIView):
 
             try:
                 start_date_time = datetime.strptime(request.GET['start_date'] + "-" + request.GET['start_time'],
-                                                    "%d/%m/%Y-%H:%M")-timedelta(hours=5, minutes=30)
+                                                    "%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
             except:
                 pass
 
             try:
                 end_date_time = datetime.strptime(request.GET['end_date'] + "-" + request.GET['end_time'],
-                                                  "%d/%m/%Y-%H:%M")-timedelta(hours=5, minutes=30)
+                                                  "%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
             except:
                 pass
             print(start_date_time, end_date_time)
@@ -277,7 +278,8 @@ class UsageAnalysisAPI(APIView):
             response["content_group_objects"] = []
 
             for content_group_object in content_group_objects:
-                temp = {"created_on": (content_group_object.created_on+timedelta(hours=5, minutes=30)).strftime("%d-%m-%Y %H:%M"), "uuid": content_group_object.uuid,
+                temp = {"created_on": (content_group_object.created_on + timedelta(hours=5, minutes=30)).strftime(
+                    "%d-%m-%Y %H:%M"), "uuid": content_group_object.uuid,
                         "status": report_status_choices_dict[content_group_object.report_status],
                         "entries": content_group_object.content_set.count()}
 
@@ -286,6 +288,115 @@ class UsageAnalysisAPI(APIView):
         except Exception as e:
             error()
             print("ERROR IN UsageAnalysisAPI", str(e))
+            return Response(data=response, status=HTTP_401_UNAUTHORIZED)
+
+        return Response(data=response, status=HTTP_200_OK)
+
+
+def Billing(request):
+    try:
+        start_date = datetime.strptime(request.GET['start_date'], "%d-%m-%Y")
+    except:
+        start_date = ""
+
+    try:
+        end_date = datetime.strptime(request.GET['end_date'], "%d-%m-%Y")
+    except:
+        end_date = ""
+
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+
+    return render(request, 'CMSApp/billing.html', context)
+
+
+class BillingAPI(APIView):
+    # authentication_classes = [AccessKeyAuthentication]
+    # throttle_classes = [SubscriptionRateThrottle]
+    permission_classes = [IsAuthenticated, ]
+
+    def get(self, request, *args, **kwargs):
+        response = {}
+        try:
+            data = request.data
+            user = request.user
+
+            start_date_time = None
+            end_date_time = None
+
+            try:
+                start_date_time = datetime.strptime(request.GET['start_date'], "%d/%m/%Y") - timedelta(hours=5, minutes=30)
+            except:
+                pass
+
+            try:
+                end_date_time = datetime.strptime(request.GET['end_date'], "%d/%m/%Y") - timedelta(hours=5, minutes=30)
+            except:
+                pass
+            try:
+                bill_entries = MonthlyBill.objects.filter(user=user)
+
+                if start_date_time is None and end_date_time is None:
+                    bill_entries = bill_entries.filter(
+                        created_on__gte=timezone.now() - timedelta(days=180))
+                else:
+                    try:
+                        bill_entries = bill_entries.filter(created_on__gte=start_date_time)
+                    except:
+                        pass
+                    try:
+                        bill_entries = bill_entries.filter(created_on__lte=end_date_time)
+                    except:
+                        pass
+            except Exception as e:
+                print(str(e))
+                bill_entries = []
+
+            response["bill_objects"] = []
+
+            for bill_entry in bill_entries:
+                temp = {"bill_no": bill_entry.pk,
+                        "created_on": (bill_entry.created_on + timedelta(hours=5, minutes=30)).strftime("%d-%m-%Y"),
+                        "status": bill_entry.is_paid,
+                        "bill_unit": bill_entry.price_unit,
+                        "bill_amount": str(bill_entry.price)}
+
+                response["bill_objects"].append(temp)
+        except Exception as e:
+            error()
+            print("ERROR IN BillingAPI", str(e))
+            return Response(data=response, status=HTTP_401_UNAUTHORIZED)
+
+        return Response(data=response, status=HTTP_200_OK)
+
+
+class PayBillAPI(APIView):
+    # authentication_classes = [AccessKeyAuthentication]
+    # throttle_classes = [SubscriptionRateThrottle]
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request, *args, **kwargs):
+        response = {}
+        try:
+            data = request.data
+            user = request.user
+
+            bill_obj = MonthlyBill.objects.get(pk=int(data['bill_no']))
+
+            if bill_obj.user != user:
+                raise Exception("Unauthorised access")
+
+            if bill_obj.created_on.month == timezone.now().month and bill_obj.created_on.year == timezone.now().year:
+                return Response(data=response, status=HTTP_403_FORBIDDEN)
+
+            bill_obj.is_paid = True
+            bill_obj.save()
+
+        except Exception as e:
+            error()
+            print("ERROR IN PaybillAPI", str(e))
             return Response(data=response, status=HTTP_401_UNAUTHORIZED)
 
         return Response(data=response, status=HTTP_200_OK)

@@ -1,0 +1,130 @@
+{% extends 'CMSApp/base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="row" style="padding: 10px">
+    <div class="col s3">
+        <label for="start-date">Start date</label>
+        <input type="text" id="start-date" value="{{ start_date|date:'d/m/Y' }}" class="datepicker">
+    </div>
+    <div class="col s3">
+        <label for="end-date">End date</label>
+        <input type="text" id="end-date" value="{{ end_date|date:'d/m/Y' }}" class="datepicker">
+    </div>
+    <div class="col s2" style="padding-top: 20px">
+        <a class="btn green white-text" href="javascript:void(0)" onclick="search_in_range()">Search</a>
+    </div>
+</div>
+
+<div class="row" style="padding: 10px">
+    <table id="table-bill-entries">
+        <thead>
+            <tr>
+                <th>Bill no.</th>
+                <th>Bill date</th>
+                <th>Bill amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="tbody-bill-entries">
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+
+function search_in_range() {
+    start_date = $('#start-date').val().replaceAll('/','-');
+    end_date = $('#end-date').val().replaceAll('/','-');
+    window.location = "{% url 'billing-page' %}" + "?start_date="+start_date+"&end_date="+end_date;
+}
+
+
+$(document).ready(function(){
+        $('.datepicker').datepicker({
+            format:"dd/mm/yyyy"
+        });
+        start_date = -1;
+        end_date = -1;
+        if($('#start-date').val()){
+            start_date = $('#start-date').val();
+        }
+        if($('#end-date').val()){
+            end_date = $('#end-date').val();
+        }
+        $.ajax({
+            url:"{% url 'billing-API' %}",
+            type:"GET",
+            data:{
+                start_date:start_date,
+                end_date: end_date,
+            },
+            success: function(response, status, xhr) {
+                if (xhr.status == 200) {
+                    tbody_html = "";
+                    for(let i=0; i<response['bill_objects'].length; i++){
+                        row = response['bill_objects'][i];
+                        tbody_html+='<tr>\
+                                        <td>'+row['bill_no']+'</td>\
+                                        <td>'+row['created_on']+'</td>\
+                                        <td>'+row['bill_unit']+" "+row['bill_amount']+'</td>';
+                        if(row['status']){
+                            tbody_html += '<td class="green-text">Paid</td>';
+                        }
+                        else{
+                            tbody_html += '<td id="due-'+row['bill_no']+'">\
+                                                <a class="red-text tooltipped" data-tooltip="Click to pay" href="javascript:void(0)" onclick="pay_bill('+row['bill_no']+')">Payment due</a>\
+                                           </td>';
+                        }
+                    }
+                    $('#tbody-bill-entries').html(tbody_html);
+                    $('.tooltipped').tooltip();
+                    $('#table-bill-entries').DataTable({
+                        "bLengthChange": false,
+                        "iDisplayLength": 20,
+                        "pageLength": 20
+                    });
+                }
+                else{
+                    showToast("Internal server error");
+                }
+            },
+            error: function(xhr, textstatus, errorthrown) {
+                console.log("Please report this error: " + errorthrown + xhr.status + xhr.responseText);
+            }
+        })
+    });
+
+function pay_bill(bill_no){
+    $.ajax({
+        url:"{% url 'pay-bill-API' %}",
+        type:"POST",
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        },
+        data:{
+            bill_no: bill_no
+        },
+        success: function(response, status, xhr) {
+            if (xhr.status == 200) {
+                tbody_html = '<td class="green-text">Paid</td>';
+                $('#due-'+bill_no).html('Paid');
+                $('#due-'+bill_no).removeClass();
+                $('#due-'+bill_no).addClass("green-text");
+                showToast("Bill paid successfully!");
+            }
+        },
+        error: function(xhr, textstatus, errorthrown) {
+            if(xhr.status==403){
+                showToast("Please pay the bill after the end of month");
+            }
+            else{
+                console.log("Please report this error: " + errorthrown + xhr.status + xhr.responseText);
+            }
+        }
+    })
+}
+
+</script>
+{% endblock %}

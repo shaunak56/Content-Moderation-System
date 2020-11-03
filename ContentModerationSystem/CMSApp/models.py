@@ -4,6 +4,9 @@ from .constants import *
 
 import uuid
 
+# MonthlyBill.objects.create(user=User.objects.first(), price=10, price_unit='INR', created_on=)
+
+
 # class UserManager(models.Manager):
 #     def get_queryset(self):
 #         return super().get_queryset().filter(is_deleted=False)
@@ -74,3 +77,15 @@ class Report(models.Model):
     report = models.TextField(default={}, blank=True, null=True)
     content = models.ForeignKey('Content', blank=True, null=True, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
+
+
+class MonthlyBill(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_on = models.DateTimeField(blank=True, null=True)
+    price = models.FloatField(default=0.0)
+    price_unit = models.CharField(max_length=200, default='INR', choices=CURRENCY_UNITS, blank=False, null=False)
+    is_paid = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.__str__()
