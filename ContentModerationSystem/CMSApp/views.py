@@ -400,3 +400,99 @@ class PayBillAPI(APIView):
             return Response(data=response, status=HTTP_401_UNAUTHORIZED)
 
         return Response(data=response, status=HTTP_200_OK)
+
+
+class ContentAPI(APIView):
+    authentication_classes = [AccessKeyAuthentication]
+    throttle_classes       = [SubscriptionRateThrottle]
+
+    def post(self,request, *args, **kwargs):
+        response = {}
+        try:
+            data = request.data
+            user = request.user
+
+            list = data['comments']
+
+            if len(list)>user.tier.content_size or len(list) == 0:
+                response['details'] = 'You cannot send more than ' + str(user.tier.content_size) + ' and less than  1 comments in one API call in this tier'
+                return Response(data=response, status=HTTP_400_BAD_REQUEST)
+
+            comment_ids = []
+            comment_texts = []
+            for comment in list:
+                comment_ids.append(comment['id'])
+                comment_texts.append(comment['text'])
+
+                group = ContentGroup.create(user=user)
+
+            for i in range(len(comment_ids)-1):
+                Content.objects.create(text_id = comment_ids[i], text = comment_texts[i], content_group=group)
+
+            index = len(comment_ids)-1
+            Content.objects.create(text_id = comment_ids[index], text = comment_texts[index], content_group=group, is_last=True)
+            response['details'] = 'Comments added to the juding queue. Please find you report soon using the group_id'
+            response['group_id'] = str(group.uuid)
+
+            return Response(data=response, status=HTTP_202_ACCEPTED)
+        except Exception as e:
+            response['details'] = str(e)
+            return Response(data=response, status=HTTP_400_BAD_REQUEST)
+
+class RequestReportAPI(APIView):
+    authentication_classes = [AccessKeyAuthentication]
+
+    def post(self,request, *args, **kwargs):
+        response = {}
+        try:
+            data = request.data
+            user = request.user
+
+            id = data['group_id']
+            group = ContentGroup.objects.get(uuid = id)
+            data['status'] = group.status
+            if group.status == '1':
+                reports = []
+                reports_objs = Report.objects.filter(content__content_group=group)
+                for reports_obj in reports_objs:
+                    reports.append(reports_obj.report)
+                data['reports'] = reports
+            return Response(data=response, status=HTTP_202_ACCEPTED)
+        except Exception as e:
+            response['details'] = str(e)
+            return Response(data=response, status=HTTP_400_BAD_REQUEST)
+
+class RequestContentGroupIdAPI(APIView):
+    authentication_classes = [AccessKeyAuthentication]
+
+    def post(self,request, *args, **kwargs):
+        response = {}
+        try:
+            data = request.data
+            user = request.user
+
+            start_time = data['start_time']
+            end_time = data['end_time']
+
+            start_date_time = datetime.strptime(start_time,"%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
+            end_date_time = datetime.strptime(end_date,"%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
+
+            groups = ContentGroup.objects.fiter(created_on__lte=end_date_time,created_on__gte=start_date_time,user=request.user)
+
+            list_data = []
+
+            for group in groups:
+                data_dic = {}
+                data_dic['uuid'] = group.uuid
+                data_dic['submitted_on'] = group.created_on
+                data_dic['status'] = group.status
+                list_data.append(data_dic)
+
+            response['groups'] = list_data
+
+            return Response(data=response, status=HTTP_200_OK)
+        except Exception as e:
+            response['details'] = str(e)
+            return Response(data=response, status=HTTP_400_BAD_REQUEST)
+
+    

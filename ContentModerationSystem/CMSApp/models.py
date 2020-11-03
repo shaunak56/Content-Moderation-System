@@ -20,7 +20,6 @@ class TierManager(models.Manager):
 class User(AbstractUser):
 
     access_key = models.CharField(max_length=200,unique=True,blank=False,null=False)
-    account_id = models.CharField(max_length=200,unique=True,blank=False,null=False)
     tier = models.ForeignKey('Tier', default=1,blank=False, null=False, on_delete=models.SET_DEFAULT)
     # objects = UserManager
     # admin_objects = models.Manager
@@ -68,7 +67,7 @@ class ContentGroup(models.Model):
 
     user = models.ForeignKey('User', blank=True, null=True, on_delete=models.SET_NULL)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    report_status = models.CharField(max_length=200, choices=REPORT_STATUS_CHOICES)
+    report_status = models.CharField(max_length=200,default=2,choices=REPORT_STATUS_CHOICES)
     created_on = models.DateTimeField(auto_now_add=True)
 
 

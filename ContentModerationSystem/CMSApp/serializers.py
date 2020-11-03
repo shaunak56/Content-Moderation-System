@@ -10,9 +10,8 @@ class UserProfileSerializer(ModelSerializer):
             'first_name',
             'last_name',
             'access_key',
-            'account_id',
             'tier',
             'email',
             'is_active',
         )
-        read_only_fields = [ "username", "access_key","account_id"]
+        read_only_fields = [ "username", "access_key"]

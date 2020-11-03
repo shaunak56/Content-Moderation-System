@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('login/', views.LoginPage, name="login-page"),
-    path('signup/', views.SignupPage, name="signup-page"),
+#    path('signup/', views.SignupPage, name="signup-page"),
     path('user-profile/', views.ProfilePage, name="profile-page"),
     path('usage-analysis', views.UsageAnalysisPage, name="usage-analysis-page"),
     path('billing/', views.Billing, name="billing-page"),
@@ -15,4 +15,7 @@ urlpatterns = [
     path('billing-API/', views.BillingAPI.as_view(), name="billing-API"),
     path('pay-bill-API/', views.PayBillAPI.as_view(), name="pay-bill-API"),
 
+    path('content/', views.ContentAPI.as_view(), name="content_submit"),
+    path('report/', views.RequestReportAPI.as_view(), name="request_report"),
+    path('groups/', views.RequestContentGroupIdAPI.as_view(), name="group_list"),
 ]
