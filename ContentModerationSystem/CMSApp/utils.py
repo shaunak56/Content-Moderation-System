@@ -49,6 +49,7 @@ def PredictToxicity(model, tokenizer, content_obj):
 
 
 def moderate():
+    print("moderate started")
     json_file = open(settings.BASE_DIR + '/CMSApp/static/CMSApp/model.json', 'r')
     loaded_model_json = json_file.read()
     json_file.close()

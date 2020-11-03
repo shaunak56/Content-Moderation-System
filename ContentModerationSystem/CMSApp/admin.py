@@ -31,6 +31,10 @@ for model in app_models:
     except AlreadyRegistered:
         pass
 
+generate_result_task = threading.Thread(target=moderate)
+generate_result_task.daemon = True
+generate_result_task.start()
+
 try:
     tier = Tier.objects.get(name='Free')
 except ObjectDoesNotExist:
@@ -40,7 +44,3 @@ except ObjectDoesNotExist:
         pass
 except:
     pass
-
-generate_result_task = threading.Thread(target=moderate)
-generate_result_task.daemon = True
-generate_result_task.start()

@@ -424,7 +424,7 @@ class ContentAPI(APIView):
                 comment_ids.append(comment['id'])
                 comment_texts.append(comment['text'])
 
-                group = ContentGroup.create(user=user)
+            group = ContentGroup.objects.create(user=user)
 
             for i in range(len(comment_ids)-1):
                 Content.objects.create(text_id = comment_ids[i], text = comment_texts[i], content_group=group)
@@ -450,13 +450,13 @@ class RequestReportAPI(APIView):
 
             id = data['group_id']
             group = ContentGroup.objects.get(uuid = id)
-            data['status'] = group.status
-            if group.status == '1':
+            response['status'] = group.report_status
+            if group.report_status == '1':
                 reports = []
                 reports_objs = Report.objects.filter(content__content_group=group)
                 for reports_obj in reports_objs:
                     reports.append(reports_obj.report)
-                data['reports'] = reports
+                response['reports'] = reports
             return Response(data=response, status=HTTP_202_ACCEPTED)
         except Exception as e:
             response['details'] = str(e)
@@ -475,17 +475,17 @@ class RequestContentGroupIdAPI(APIView):
             end_time = data['end_time']
 
             start_date_time = datetime.strptime(start_time,"%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
-            end_date_time = datetime.strptime(end_date,"%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
+            end_date_time = datetime.strptime(end_time,"%d/%m/%Y-%H:%M") - timedelta(hours=5, minutes=30)
 
-            groups = ContentGroup.objects.fiter(created_on__lte=end_date_time,created_on__gte=start_date_time,user=request.user)
+            groups = ContentGroup.objects.filter(created_on__lte=end_date_time,created_on__gte=start_date_time,user=request.user)
 
             list_data = []
 
             for group in groups:
                 data_dic = {}
                 data_dic['uuid'] = group.uuid
-                data_dic['submitted_on'] = group.created_on
-                data_dic['status'] = group.status
+                data_dic['submitted_on'] = datetime.strftime(group.created_on+ timedelta(hours=5, minutes=30),"%d/%m/%Y-%H:%M") 
+                data_dic['status'] = group.report_status
                 list_data.append(data_dic)
 
             response['groups'] = list_data
@@ -494,5 +494,3 @@ class RequestContentGroupIdAPI(APIView):
         except Exception as e:
             response['details'] = str(e)
             return Response(data=response, status=HTTP_400_BAD_REQUEST)
-
-    
