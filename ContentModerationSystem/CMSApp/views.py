@@ -69,7 +69,7 @@ def SignupPage(request):
     return render(request, 'CMSApp/login.html')
 
 
-@login_required(login_url='/login/')
+@login_required(login_url='/cms/login/')
 def ProfilePage(request):
     context = {
         'user_obj': request.user,
@@ -77,8 +77,12 @@ def ProfilePage(request):
     }
     return render(request, 'CMSApp/profile.html', context)
 
+@login_required(login_url='/cms/login/')
+def Logout(request):
+    logout(request)
+    return HttpResponseRedirect('/cms/login/')
 
-@login_required(login_url='/login/')
+@login_required(login_url='/cms/login/')
 def UsageAnalysisPage(request):
     return render(request, 'CMSApp/usage-analysis.html')
 

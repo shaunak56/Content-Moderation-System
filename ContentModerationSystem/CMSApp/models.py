@@ -19,7 +19,7 @@ class TierManager(models.Manager):
 
 class User(AbstractUser):
 
-    access_key = models.CharField(max_length=200,unique=True,blank=False,null=False)
+    access_key = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tier = models.ForeignKey('Tier', default=1,blank=False, null=False, on_delete=models.SET_DEFAULT)
     # objects = UserManager
     # admin_objects = models.Manager

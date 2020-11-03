@@ -11,35 +11,45 @@ from .utils import moderate
 
 app_models = apps.get_app_config('CMSApp').get_models()
 
-class CustomUserAdmin(UserAdmin):
+# class CustomUserAdmin(UserAdmin):
 
-    fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('access_key', 'tier')}),
-    )
+fieldsets = UserAdmin.fieldsets + (
+    (None, {'fields': ('access_key', 'tier')}),
+)
 
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {'fields': ('access_key', 'tier')}, {'readonly_fields'}),
-    )
+add_fieldsets = UserAdmin.add_fieldsets + (
+    (None, {'fields': ('access_key', 'tier')}, {'readonly_fields'}),
+)
+#     fieldsets = UserAdmin.fieldsets + (
+#         (None, {'fields': ('access_key','tier')}),
+#     )
+
+#     add_fieldsets = UserAdmin.add_fieldsets + (
+#         (None, {'fields': ('access_key','tier')}),
+#     )
 
 
 for model in app_models:
     try:
-        if str(model) == "<class 'CMSApp.models.User'>":
-            admin.site.register(model,CustomUserAdmin)
-        else:
-            admin.site.register(model)
+        # if str(model) == "<class 'CMSApp.models.User'>":
+        #     admin.site.register(model,CustomUserAdmin)
+        # else:
+        admin.site.register(model)
     except AlreadyRegistered:
         pass
 
-generate_result_task = threading.Thread(target=moderate)
-generate_result_task.daemon = True
-generate_result_task.start()
+try:
+    generate_result_task = threading.Thread(target=moderate)
+    generate_result_task.daemon = True
+    generate_result_task.start()
+except:
+    pass
 
 try:
     tier = Tier.objects.get(name='Free')
 except ObjectDoesNotExist:
     try:
-        Tier.objects.create(name='Free',throttling_limit=5,content_size=100)
+        Tier.objects.create(name='Free', throttling_limit=5, content_size=100)
     except:
         pass
 except:
