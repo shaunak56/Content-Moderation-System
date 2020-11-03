@@ -439,6 +439,7 @@ class ContentAPI(APIView):
             response['details'] = str(e)
             return Response(data=response, status=HTTP_400_BAD_REQUEST)
 
+
 class RequestReportAPI(APIView):
     authentication_classes = [AccessKeyAuthentication]
 
@@ -455,12 +456,13 @@ class RequestReportAPI(APIView):
                 reports = []
                 reports_objs = Report.objects.filter(content__content_group=group)
                 for reports_obj in reports_objs:
-                    reports.append(reports_obj.report)
+                    reports.append(json.loads(reports_obj.report))
                 response['reports'] = reports
             return Response(data=response, status=HTTP_202_ACCEPTED)
         except Exception as e:
             response['details'] = str(e)
             return Response(data=response, status=HTTP_400_BAD_REQUEST)
+
 
 class RequestContentGroupIdAPI(APIView):
     authentication_classes = [AccessKeyAuthentication]

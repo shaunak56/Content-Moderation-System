@@ -188,7 +188,7 @@ function signup(){
         },
         data: data_json,
         success: function(response) {
-            if (response['status'] == 200) {
+            if (response['status'] == 202) {
                 showToast("Welcome "+username);
                 window.location = "{% url 'profile-page' %}";
             }

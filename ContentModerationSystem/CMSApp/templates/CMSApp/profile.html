@@ -13,8 +13,6 @@
     </h6>
     <div class="divider col s12"></div>
     <div class="col s12 row edit-profile" style="padding: 0">
-        <label for="user-account-id">Account ID</label>
-        <h6 id="user-account-id">{{ user_obj.account_id }}</h6>
         <label for="user-name">Name</label>
         <h6 id="user-name">{{ user_obj.first_name }} {{ user_obj.last_name }}</h6>
         <label for="user-email">Email</label>
@@ -52,7 +50,6 @@
         </div>
     </div>
     <div id="delete-profile">
-
         <div class="modal" id="modal-delete-profile">
             <div class="modal-content">
                 Are you sure you want to delete your profile?
